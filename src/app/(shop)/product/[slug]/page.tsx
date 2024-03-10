@@ -5,10 +5,33 @@ import { notFound } from "next/navigation";
 import { titleFont } from "@/config/fonts";
 import { ProductMobileSlideshow, ProductSlideshow, QuantitySelector, SizeSelector, StockLabel } from "@/components";
 import { getProductBySlug } from "@/actions";
+import { Metadata, ResolvingMetadata } from "next";
 
 interface Props {
     params: {
         slug: string;
+    }
+}
+// Con esta implementación se busca ser más SEO friendly
+export async function generateMetadata({ params }: Props, parent: ResolvingMetadata): Promise<Metadata> {
+    // read route params
+    const slug = params.slug;
+
+    //fetch data
+    const product = await getProductBySlug(slug);
+
+    // optionaly access and extend (rather than replace) parent metadata
+    //const previousImages = (await parent).openGraph?.images || []
+
+    return {
+        title: product?.title ?? 'Producto no encontrado',
+        description: product?.description ?? '',
+        // los openGraph son más buscados por las redes sociales, es por eso que duplicamos la información (title, description)
+        openGraph: {
+            title: product?.title ?? 'Producto no encontrado',
+            description: product?.description ?? '',
+            images: [`/products/${ product?.images[1] }`]
+        }
     }
 }
 
